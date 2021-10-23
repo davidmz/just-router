@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./build/cjs/",
+    "sourceMap": true,
+    "target": "es6",
+    "lib": ["ES2017"],
+
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "declaration": false,
+    "importHelpers": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./src/**/*.test.ts", "./src/legacy-tests"]
+}
