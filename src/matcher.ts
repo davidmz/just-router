@@ -2,11 +2,10 @@ import { Const, Param, parsePath, parseTemplate, Separator, Text, Token } from '
 
 export type Params = Record<string, string>;
 
-export type Match = {
-  params: Params;
-  path: string;
-  tail: string;
-};
+export class Match {
+  // public meta: any = {};
+  constructor(public params: Params = {}, public path: string = '', public tail: string = '') {}
+}
 
 export function matcher(template: string) {
   const tpl = parseTemplate(template);
@@ -22,7 +21,7 @@ function match(template: Token[], path: Token[]) {
     return null;
   }
 
-  const result: Match = { params: {}, tail: '', path: '' };
+  const result = new Match();
   for (let i = 0; i < template.length; i++) {
     const [tokenT, tokenP] = [template[i], path[i]];
     if (tokenT instanceof Text || tokenT instanceof Separator) {
@@ -55,6 +54,5 @@ function match(template: Token[], path: Token[]) {
     .slice(template.length)
     .map((p) => p.toString())
     .join('');
-
   return result;
 }

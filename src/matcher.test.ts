@@ -1,4 +1,4 @@
-import { matcher } from './matcher';
+import { Match, matcher } from './matcher';
 
 describe('matcher', () => {
   const testData = [
@@ -34,5 +34,5 @@ describe('matcher', () => {
 });
 
 function res(params: Record<string, string> = {}, tail: string = '') {
-  return { params, tail, path: '' };
+  return new Match(params, '', tail);
 }

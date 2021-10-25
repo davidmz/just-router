@@ -1,5 +1,4 @@
-import { Match } from './matcher';
-import { greedy, Handler, oneOf, route } from './route';
+import { greedy, oneOf, route } from './route';
 
 describe('route', () => {
   it('should handle simple route', () => {
@@ -58,27 +57,6 @@ describe('route', () => {
     expect(h).toBeCalledWith({ params: {}, tail: '/ru/about', path: '/ru/about' });
   });
 
-  it('should handle middleware', () => {
-    const h = jest.fn(() => true);
-    const r = route('/{lang}', onlyLangs(h, 'ru', 'en'));
-
-    h.mockClear();
-    expect(r('/ru')).toBe(true);
-    expect(h).toBeCalled();
-
-    h.mockClear();
-    expect(r('/ru/bar')).toBe(false);
-    expect(h).not.toBeCalled();
-
-    h.mockClear();
-    expect(r('/en')).toBe(true);
-    expect(h).toBeCalled();
-
-    h.mockClear();
-    expect(r('/fr')).toBe(false);
-    expect(h).not.toBeCalled();
-  });
-
   it('should handle complex routing', () => {
     const ctl = {
       index: jest.fn(() => true),
@@ -88,10 +66,7 @@ describe('route', () => {
     };
     const r = oneOf(
       route('/', ctl.index),
-      route(
-        '/{lang}',
-        onlyLangs(oneOf(route('/home', ctl.home), route('/{page=about}', ctl.about)), 'ru', 'en')
-      ),
+      route('/{lang}', oneOf(route('/home', ctl.home), route('/{page=about}', ctl.about))),
       route('', greedy(ctl.notFound))
     );
 
@@ -110,16 +85,6 @@ describe('route', () => {
     expectCall('/ru', ctl.notFound, {}, '/ru');
     expectCall('/ru/foo', ctl.notFound, {}, '/ru/foo');
     expectCall('/ru/home', ctl.home, { lang: 'ru' });
-    expectCall('/fr/home', ctl.notFound, {}, '/fr/home');
     expectCall('/en/about', ctl.about, { lang: 'en', page: 'about' });
   });
 });
-
-function onlyLangs(...langs: string[]) {
-  return (match: Match) => {
-    if (!langs.includes(match.params.lang)) {
-      return null;
-    }
-    return match;
-  };
-}

@@ -36,7 +36,7 @@ export function greedy(fn: Function): Route {
 }
 
 function asMatch(pathOrMatch: string | Match): Match {
-  return typeof pathOrMatch === 'string'
-    ? { params: {}, tail: pathOrMatch, path: pathOrMatch }
-    : pathOrMatch;
+  return typeof pathOrMatch === 'string' ? new Match({}, pathOrMatch, pathOrMatch) : pathOrMatch;
 }
+
+export type Middleware = (match: Match) => Match | null | PromiseLike<Match | null>;
