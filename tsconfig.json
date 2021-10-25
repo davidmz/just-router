@@ -13,9 +13,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*"],
-  "exclude": ["./src/**/*.test.ts", "./src/legacy-tests"]
+  "exclude": ["./src/**/*.test.ts"]
 }

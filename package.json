@@ -1,7 +1,14 @@
 {
-  "name": "just-router",
+  "name": "simple-path-matcher",
   "version": "0.1.0",
-  "description": "A very simple routing library",
+  "description": "A very simple path matching library",
+  "keywords": [
+    "path",
+    "match",
+    "router",
+    "routing",
+    "route"
+  ],
   "homepage": "https://github.com/davidmz/just-router",
   "author": "David Mzareulyan <david@hiero.ru> (https://github.com/davidmz)",
   "license": "MIT",
@@ -12,17 +19,27 @@
     "clean": "del-cli build/cjs build/esm",
     "build": "tsc && tsc -p ./tsconfig.esm.json",
     "test": "jest",
-    "prepack": "run-s clean test build"
+    "size": "size-limit",
+    "prepack": "run-s clean test build size"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "~6.0.3",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.4",
     "del-cli": "^4.0.1",
     "jest": "^27.3.1",
     "npm-run-all": "~4.1.5",
     "prettier": "2.4.1",
+    "size-limit": "~6.0.3",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
     "typescript": "^4.4.4"
-  }
+  },
+  "size-limit": [
+    {
+      "path": "build/esm/index.js",
+      "import": "{ route, oneOf }",
+      "limit": "1 kB"
+    }
+  ]
 }
