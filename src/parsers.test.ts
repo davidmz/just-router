@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { parseTemplate, parsePath, Separator, Param, Text, Const } from './parsers';
 
 const sep = new Separator('/');

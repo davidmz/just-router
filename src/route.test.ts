@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { greedy, oneOf, route } from './route';
 
 describe('route', () => {
   it('should handle simple route', () => {
-    const h = jest.fn(() => true);
+    const h = vi.fn(() => true);
     const r = route('/{lang}', h);
 
     expect(r('/ru')).toBe(true);
@@ -14,7 +15,7 @@ describe('route', () => {
   });
 
   it('should handle oneOf routes', () => {
-    const h = jest.fn(() => true);
+    const h = vi.fn(() => true);
     const r = oneOf(route('/about', h), route('/{lang}', h));
 
     expect(r('/ru')).toBe(true);
@@ -26,7 +27,7 @@ describe('route', () => {
   });
 
   it('should handle chain of routes', () => {
-    const h = jest.fn(() => true);
+    const h = vi.fn(() => true);
     const r = route('/{lang}', route('/about', h));
 
     expect(r('/ru/about')).toBe(true);
@@ -42,7 +43,7 @@ describe('route', () => {
   });
 
   it('greedy handler', () => {
-    const h = jest.fn(() => true);
+    const h = vi.fn(() => true);
     const r = route('/{lang}', greedy(h));
 
     expect(r('/ru/about')).toBe(true);
@@ -50,7 +51,7 @@ describe('route', () => {
   });
 
   it('catch-all handler', () => {
-    const h = jest.fn(() => true);
+    const h = vi.fn(() => true);
     const r = route('', greedy(h));
 
     expect(r('/ru/about')).toBe(true);
@@ -59,10 +60,10 @@ describe('route', () => {
 
   it('should handle complex routing', () => {
     const ctl = {
-      index: jest.fn(() => true),
-      home: jest.fn(() => true),
-      about: jest.fn(() => true),
-      notFound: jest.fn(() => true),
+      index: vi.fn(() => true),
+      home: vi.fn(() => true),
+      about: vi.fn(() => true),
+      notFound: vi.fn(() => true),
     };
     const r = oneOf(
       route('/', ctl.index),
@@ -71,7 +72,7 @@ describe('route', () => {
     );
 
     const expectCall = (path: string, handler: Function, params = {}, tail = '') => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       expect(r(path)).toBe(true);
       expect(handler).toBeCalledWith({ path, params, tail });
       for (const h of Object.values(ctl)) {
