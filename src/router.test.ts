@@ -93,7 +93,7 @@ describe("Router", () => {
       ["/about", "about"],
       ["/admin", "admin: admin"],
       ["/admin/users", "admin: users"],
-      ["/admin/users/john", "admin: user john"],
+      ["/admin/users/j%C3%B6hn", "admin: user jöhn"],
       ["/admin/admins", "admin: not found in admin"],
       ["/admin/users/john/snow", "admin: not found in admin"],
       ["/foo", "not found"],

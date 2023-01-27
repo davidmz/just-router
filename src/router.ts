@@ -22,7 +22,10 @@ export function router<T, S extends object = {}>(
   return function (path: string): T {
     const context: Context<S> = {
       path,
-      segments: path.split("/").filter(Boolean),
+      segments: path
+        .split("/")
+        .filter(Boolean)
+        .map((s) => decodeURIComponent(s)),
       pathParams: {},
       state: {} as S,
     };
