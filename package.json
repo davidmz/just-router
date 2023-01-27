@@ -1,7 +1,7 @@
 {
-  "name": "simple-path-matcher",
+  "name": "just-router",
   "version": "0.1.0",
-  "description": "A very simple path matching library",
+  "description": "A very simple path matching and routing library",
   "keywords": [
     "path",
     "match",
@@ -17,15 +17,23 @@
   "types": "build/esm/index.d.ts",
   "scripts": {
     "clean": "del-cli build/cjs build/esm",
-    "build": "tsc && tsc -p ./tsconfig.esm.json",
+    "build": "eslint && tsc && tsc -p ./tsconfig.esm.json",
     "test": "vitest",
+    "lint": "eslint",
     "size": "size-limit",
     "prepack": "run-s clean test build size"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "~8.1.2",
     "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
     "del-cli": "^5.0.0",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^9.0.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "npm-run-all": "~4.1.5",
     "prettier": "2.8.3",
     "size-limit": "~8.1.2",
@@ -36,7 +44,7 @@
   "size-limit": [
     {
       "path": "build/esm/index.js",
-      "import": "{ route, oneOf }",
+      "import": "{ router, route, bunch }",
       "limit": "1 kB"
     }
   ]
