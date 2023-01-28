@@ -7,7 +7,7 @@ export {
   param,
   root,
   route,
-  createRouter as router,
+  createRouter,
   type Router,
   type Context,
   type Handler,

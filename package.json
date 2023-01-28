@@ -45,7 +45,7 @@
   "size-limit": [
     {
       "path": "build/esm/index.js",
-      "import": "{ router, route, bunch }",
+      "import": "{ createRouter, route, bunch }",
       "limit": "1 kB"
     }
   ]
