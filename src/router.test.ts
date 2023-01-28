@@ -6,12 +6,12 @@ import {
   param,
   root,
   route,
-  router,
+  createRouter,
 } from "./router";
 
 describe("Router", () => {
   it("should create simple router", () => {
-    const r = router(route("foo", () => 42));
+    const r = createRouter(route("foo", () => 42));
 
     expect(r("/foo/")).toBe(42);
     expect(r("/foo")).toBe(42);
@@ -22,7 +22,7 @@ describe("Router", () => {
   });
 
   it("should create simple router with custom context", () => {
-    const r = router<number, { isFoo?: boolean }>(
+    const r = createRouter<number, { isFoo?: boolean }>(
       route(
         "foo",
         (ctx, next) => {
@@ -37,21 +37,22 @@ describe("Router", () => {
   });
 
   it("should create two-legs router", () => {
-    const r = router(
+    const r = createRouter(
       bunch(
-        route("foo", () => 42),
+        route(/^foo/, () => 42),
         route("bar", () => 24)
       )
     );
 
     expect(r("/foo/")).toBe(42);
+    expect(r("/foooo/")).toBe(42);
     expect(r("/bar")).toBe(24);
     expect(() => r("foo/bar")).toThrowError(RouteNotFound);
     expect(() => r("baz")).toThrowError(RouteNotFound);
   });
 
   it("should create router with fallback handler", () => {
-    const r = router(
+    const r = createRouter(
       bunch(
         route("foo", () => 42),
         route("bar", () => 24),
@@ -72,14 +73,14 @@ describe("Router", () => {
     };
 
     // prettier-ignore
-    const r = router(
+    const r = createRouter(
       bunch(
         route(root(), () => "home"),
         route("about", () => "about"),
         route("admin", setAdmin, bunch(
-          route(root(), () => `admin`),
+          route("", () => `admin`),
           route("users", bunch(
-            route(root(), () => `users`),
+            route("", () => `users`),
             route(param("username"), (ctx) => `user ${ctx.pathParams["username"]}`),
           )),
           () => "not found in admin"

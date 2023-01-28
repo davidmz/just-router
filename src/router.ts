@@ -16,7 +16,7 @@ export type Router<T> = (path: string) => T;
 export class UnexpectedCall extends Error {}
 export class RouteNotFound extends Error {}
 
-export function router<T, S extends object = {}>(
+export function createRouter<T, S extends object = {}>(
   route: Handler<T, S>
 ): Router<T> {
   return function (path: string): T {
@@ -43,7 +43,7 @@ const greedyHandlers = new WeakSet<object>();
 
 export function route<T, S extends object = {}>(
   ...handlers:
-    | [string, Handler<T, S>, ...Handler<T, S>[]]
+    | [string | RegExp, Handler<T, S>, ...Handler<T, S>[]]
     | [Handler<T, S>, ...Handler<T, S>[]]
 ): Handler<T, S> {
   const last = handlers[handlers.length - 1] as Handler<T, S>;
@@ -100,10 +100,14 @@ function contextSaver(ctx: Context) {
 }
 
 function segmentToHandler<T, S extends object = {}>(
-  p: string | Handler<T, S>
+  p: string | RegExp | Handler<T, S>
 ): Handler<T, S> {
-  if (typeof p === "string") {
-    return constSegment<T>(p);
+  if (p === "") {
+    return root();
+  } else if (typeof p === "string") {
+    return constSegment(p);
+  } else if (p instanceof RegExp) {
+    return regexpSegment(p);
   }
   return p;
 }
@@ -117,6 +121,26 @@ function constSegment<T, S extends object = {}>(
       return next();
     }
     return undefined;
+  };
+}
+
+function regexpSegment<T, S extends object = {}>(re: RegExp): Handler<T, S> {
+  return (context, next) => {
+    const text = context.segments[0];
+    if (!text) {
+      return undefined;
+    }
+    const m = re.exec(text);
+    if (!m) {
+      return undefined;
+    }
+    context.segments.shift();
+    if (m.groups) {
+      for (const name of Object.keys(m.groups)) {
+        context.pathParams[name] = m.groups[name];
+      }
+    }
+    return next();
   };
 }
 
