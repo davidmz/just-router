@@ -1,5 +1,5 @@
 {
-  "name": "just-router",
+  "name": "@davidmz/just-router",
   "version": "0.1.0",
   "description": "A very simple path matching and routing library",
   "keywords": [
