@@ -18,7 +18,8 @@
   "scripts": {
     "clean": "del-cli build/cjs build/esm",
     "build": "eslint && tsc && tsc -p ./tsconfig.esm.json",
-    "test": "vitest",
+    "test": "vitest --run",
+    "test-watch": "vitest",
     "lint": "eslint",
     "size": "size-limit",
     "prepack": "run-s clean test build size"
