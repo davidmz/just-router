@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ContextSaver, combineHandlers, someHandler } from "./core";
+
+import { combineHandlers, ContextSaver, someHandler } from "./core";
 
 describe("Router 3 - Core", () => {
   describe("combineHandlers", () => {
@@ -28,7 +29,7 @@ describe("Router 3 - Core", () => {
   });
 
   describe("someHandler", () => {
-    const saver = () => () => {};
+    const saver = () => () => void 0;
 
     it("should combine 0 handlers", () => {
       const h = someHandler(saver, []);

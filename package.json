@@ -1,6 +1,6 @@
 {
   "name": "@davidmz/just-router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A very simple path matching and routing library",
   "keywords": [
     "path",
@@ -20,7 +20,7 @@
     "build": "eslint && tsc && tsc -p ./tsconfig.esm.json",
     "test": "vitest --run",
     "test-watch": "vitest",
-    "lint": "eslint",
+    "lint": "eslint src",
     "size": "size-limit",
     "prepack": "run-s clean test build size"
   },
@@ -46,7 +46,7 @@
     {
       "path": "build/esm/index.js",
       "import": "{ createRouter, route, bunch }",
-      "limit": "1 kB"
+      "limit": "700 B"
     }
   ]
 }

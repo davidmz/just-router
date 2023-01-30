@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
+
 import {
-  Handler,
-  RouteNotFound,
   bunch,
-  param,
-  route,
   createRouter,
+  Handler,
+  param,
   re,
+  route,
+  RouteNotFound,
 } from "./router";
 
 describe("Router", () => {

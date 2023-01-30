@@ -22,9 +22,7 @@ export function someHandler<C, T>(
       try {
         result = h(context, next);
       } finally {
-        if (typeof result === "undefined") {
-          restore();
-        }
+        typeof result === "undefined" && restore();
       }
       if (typeof result !== "undefined") {
         return result;

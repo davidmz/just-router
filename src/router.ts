@@ -1,22 +1,26 @@
-import { Handler as CoreHandler, combineHandlers, someHandler } from "./core";
+import { combineHandlers, Handler as CoreHandler, someHandler } from "./core";
 
-export type Context<S extends object = {}> = {
+export type Context<S extends object = object> = {
   readonly path: string;
   segments: string[];
-  pathParams: Record<string, any>;
+  pathParams: Record<string, string>;
   state: S;
 };
 
-export type Handler<T, S extends object = {}> = CoreHandler<
+export type Handler<T, S extends object = object> = CoreHandler<
   Context<S>,
   T | undefined
 >;
 export type Router<T> = (path: string) => T;
 
-export class UnexpectedCall extends Error {}
-export class RouteNotFound extends Error {}
+export class UnexpectedCall extends Error {
+  // no content
+}
+export class RouteNotFound extends Error {
+  // no content
+}
 
-export function createRouter<T, S extends object = {}>(
+export function createRouter<T, S extends object = object>(
   route: Handler<T, S>
 ): Router<T> {
   return function (path: string): T {
@@ -41,7 +45,7 @@ export function createRouter<T, S extends object = {}>(
 
 const greedyHandlers = new WeakSet<object>();
 
-export function route<T, S extends object = {}>(
+export function route<T, S extends object = object>(
   ...handlers:
     | [string, Handler<T, S>, ...Handler<T, S>[]]
     | [Handler<T, S>, ...Handler<T, S>[]]
@@ -53,13 +57,15 @@ export function route<T, S extends object = {}>(
   ]);
 }
 
-export function bunch<T, S extends object = {}>(
+export function bunch<T, S extends object = object>(
   ...handlers: Handler<T, S>[]
 ): Handler<T, S> {
   return greedy(someHandler(contextSaver, handlers));
 }
 
-export function param<T, S extends object = {}>(name: string): Handler<T, S> {
+export function param<T, S extends object = object>(
+  name: string
+): Handler<T, S> {
   return (ctx, next) => {
     if (ctx.segments.length > 0) {
       ctx.pathParams[name] = ctx.segments[0];
@@ -70,14 +76,14 @@ export function param<T, S extends object = {}>(name: string): Handler<T, S> {
   };
 }
 
-export function greedy<T, S extends object = {}>(
+export function greedy<T, S extends object = object>(
   fn: Handler<T, S>
 ): Handler<T, S> {
   greedyHandlers.add(fn);
   return fn;
 }
 
-export function re<T, S extends object = {}>(re: RegExp): Handler<T, S> {
+export function re<T, S extends object = object>(re: RegExp): Handler<T, S> {
   return (context, next) => {
     const [seg] = context.segments;
     if (!seg) {
@@ -110,7 +116,7 @@ function contextSaver(ctx: Context) {
   };
 }
 
-function segmentToHandler<T, S extends object = {}>(
+function segmentToHandler<T, S extends object = object>(
   p: string | Handler<T, S>
 ): Handler<T, S> {
   if (typeof p === "string") {
@@ -119,7 +125,7 @@ function segmentToHandler<T, S extends object = {}>(
   return p;
 }
 
-function constSegment<T, S extends object = {}>(
+function constSegment<T, S extends object = object>(
   segment: string
 ): Handler<T, S> {
   return (context, next) => {
@@ -131,7 +137,7 @@ function constSegment<T, S extends object = {}>(
   };
 }
 
-function lastHandler<T, S extends object = {}>(
+function lastHandler<T, S extends object = object>(
   fn: Handler<T, S>
 ): Handler<T, S> {
   return (context, next) =>
