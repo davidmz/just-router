@@ -43,7 +43,7 @@ const greedyHandlers = new WeakSet<object>();
 
 export function route<T, S extends object = {}>(
   ...handlers:
-    | [string | RegExp, Handler<T, S>, ...Handler<T, S>[]]
+    | [string, Handler<T, S>, ...Handler<T, S>[]]
     | [Handler<T, S>, ...Handler<T, S>[]]
 ): Handler<T, S> {
   const last = handlers[handlers.length - 1] as Handler<T, S>;
@@ -77,6 +77,26 @@ export function greedy<T, S extends object = {}>(
   return fn;
 }
 
+export function re<T, S extends object = {}>(re: RegExp): Handler<T, S> {
+  return (context, next) => {
+    const [seg] = context.segments;
+    if (!seg) {
+      return undefined;
+    }
+    const m = re.exec(seg);
+    if (!m) {
+      return undefined;
+    }
+    context.segments.shift();
+    if (m.groups) {
+      for (const name of Object.keys(m.groups)) {
+        context.pathParams[name] = m.groups[name];
+      }
+    }
+    return next();
+  };
+}
+
 // Private functions
 
 function contextSaver(ctx: Context) {
@@ -91,12 +111,10 @@ function contextSaver(ctx: Context) {
 }
 
 function segmentToHandler<T, S extends object = {}>(
-  p: string | RegExp | Handler<T, S>
+  p: string | Handler<T, S>
 ): Handler<T, S> {
   if (typeof p === "string") {
     return constSegment(p);
-  } else if (p instanceof RegExp) {
-    return regexpSegment(p);
   }
   return p;
 }
@@ -110,26 +128,6 @@ function constSegment<T, S extends object = {}>(
       return next();
     }
     return undefined;
-  };
-}
-
-function regexpSegment<T, S extends object = {}>(re: RegExp): Handler<T, S> {
-  return (context, next) => {
-    const text = context.segments[0];
-    if (!text) {
-      return undefined;
-    }
-    const m = re.exec(text);
-    if (!m) {
-      return undefined;
-    }
-    context.segments.shift();
-    if (m.groups) {
-      for (const name of Object.keys(m.groups)) {
-        context.pathParams[name] = m.groups[name];
-      }
-    }
-    return next();
   };
 }
 

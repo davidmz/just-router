@@ -5,6 +5,7 @@ export {
   bunch,
   greedy,
   param,
+  re,
   route,
   createRouter,
   type Router,

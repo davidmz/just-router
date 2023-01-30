@@ -6,6 +6,7 @@ import {
   param,
   route,
   createRouter,
+  re,
 } from "./router";
 
 describe("Router", () => {
@@ -38,7 +39,7 @@ describe("Router", () => {
   it("should create two-legs router", () => {
     const r = createRouter(
       bunch(
-        route(/^foo/, () => 42),
+        route(re(/^foo/), () => 42),
         route("bar", () => 24)
       )
     );
