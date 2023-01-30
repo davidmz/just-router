@@ -4,7 +4,6 @@ import {
   RouteNotFound,
   bunch,
   param,
-  root,
   route,
   createRouter,
 } from "./router";
@@ -75,12 +74,12 @@ describe("Router", () => {
     // prettier-ignore
     const r = createRouter(
       bunch(
-        route(root(), () => "home"),
+        route(() => "home"),
         route("about", () => "about"),
         route("admin", setAdmin, bunch(
-          route("", () => `admin`),
+          route(() => `admin`),
           route("users", bunch(
-            route("", () => `users`),
+            route(() => `users`),
             route(param("username"), (ctx) => `user ${ctx.pathParams["username"]}`),
           )),
           () => "not found in admin"

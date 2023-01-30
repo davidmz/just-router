@@ -70,15 +70,6 @@ export function param<T, S extends object = {}>(name: string): Handler<T, S> {
   };
 }
 
-export function root<T, S extends object = {}>(): Handler<T, S> {
-  return (ctx, next) => {
-    if (ctx.segments.length === 0) {
-      return next();
-    }
-    return undefined;
-  };
-}
-
 export function greedy<T, S extends object = {}>(
   fn: Handler<T, S>
 ): Handler<T, S> {
@@ -102,9 +93,7 @@ function contextSaver(ctx: Context) {
 function segmentToHandler<T, S extends object = {}>(
   p: string | RegExp | Handler<T, S>
 ): Handler<T, S> {
-  if (p === "") {
-    return root();
-  } else if (typeof p === "string") {
+  if (typeof p === "string") {
     return constSegment(p);
   } else if (p instanceof RegExp) {
     return regexpSegment(p);
