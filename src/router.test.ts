@@ -70,7 +70,7 @@ describe("Router", () => {
   describe("deep router with params and fallback handler", () => {
     const setAdmin: Handler<string> = (_ctx, next) => {
       const res = next();
-      return res ? `admin: ${res}` : undefined;
+      return res ? `admin: ${res}` : null;
     };
 
     // prettier-ignore
@@ -78,6 +78,7 @@ describe("Router", () => {
       bunch(
         route(() => "home"),
         route("about", () => "about"),
+        route("about", "blank", () => "about:blank"),
         route("admin", setAdmin, bunch(
           route(() => `admin`),
           route("users", bunch(
@@ -93,6 +94,7 @@ describe("Router", () => {
     const testData = [
       ["/", "home"],
       ["/about", "about"],
+      ["/about/blank", "about:blank"],
       ["/admin", "admin: admin"],
       ["/admin/users", "admin: users"],
       ["/admin/users/j%C3%B6hn", "admin: user jöhn"],

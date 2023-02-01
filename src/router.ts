@@ -1,4 +1,9 @@
-import { combineHandlers, Handler as CoreHandler, someHandler } from "./core";
+import {
+  combineHandlers,
+  Handler as CoreHandler,
+  Nullable,
+  someHandler,
+} from "./core";
 
 export type Context<S extends object = object> = {
   readonly path: string;
@@ -8,8 +13,8 @@ export type Context<S extends object = object> = {
 };
 
 export type Handler<T, S extends object = object> = CoreHandler<
-  Context<S>,
-  T | undefined
+  Nullable<T>,
+  Context<S>
 >;
 export type Router<T> = (path: string) => T;
 
@@ -36,7 +41,7 @@ export function createRouter<T, S extends object = object>(
     const result = route(context, () => {
       throw new UnexpectedCall("Unexpected call of final handler");
     });
-    if (typeof result === "undefined") {
+    if (result == null) {
       throw new RouteNotFound("Cannot find route");
     }
     return result;
@@ -46,13 +51,11 @@ export function createRouter<T, S extends object = object>(
 const greedyHandlers = new WeakSet<object>();
 
 export function route<T, S extends object = object>(
-  ...handlers:
-    | [string, Handler<T, S>, ...Handler<T, S>[]]
-    | [Handler<T, S>, ...Handler<T, S>[]]
+  ...handlers: [...(string | Handler<T, S>)[], Handler<T, S>]
 ): Handler<T, S> {
   const last = handlers[handlers.length - 1] as Handler<T, S>;
   return combineHandlers([
-    ...handlers.slice(0, handlers.length - 1).map(segmentToHandler<T, S>),
+    ...handlers.slice(0, handlers.length - 1).map(toHandler<T, S>),
     greedyHandlers.has(last) ? last : lastHandler(last),
   ]);
 }
@@ -72,7 +75,7 @@ export function param<T, S extends object = object>(
       ctx.segments.shift();
       return next();
     }
-    return undefined;
+    return null;
   };
 }
 
@@ -83,15 +86,27 @@ export function greedy<T, S extends object = object>(
   return fn;
 }
 
+export function eq<T, S extends object = object>(
+  segment: string
+): Handler<T, S> {
+  return (context, next) => {
+    if (context.segments[0] === segment) {
+      context.segments.shift();
+      return next();
+    }
+    return null;
+  };
+}
+
 export function re<T, S extends object = object>(re: RegExp): Handler<T, S> {
   return (context, next) => {
     const [seg] = context.segments;
     if (!seg) {
-      return undefined;
+      return null;
     }
     const m = re.exec(seg);
     if (!m) {
-      return undefined;
+      return null;
     }
     context.segments.shift();
     if (m.groups) {
@@ -110,36 +125,24 @@ function contextSaver(ctx: Context) {
   const pathParams = { ...ctx.pathParams };
   const state = { ...ctx.state };
   return () => {
-    ctx.segments = segments;
-    ctx.pathParams = pathParams;
-    ctx.state = state;
+    ctx.segments = [...segments];
+    ctx.pathParams = { ...pathParams };
+    ctx.state = { ...state };
   };
 }
 
-function segmentToHandler<T, S extends object = object>(
+function toHandler<T, S extends object = object>(
   p: string | Handler<T, S>
 ): Handler<T, S> {
   if (typeof p === "string") {
-    return constSegment(p);
+    return eq(p);
   }
   return p;
-}
-
-function constSegment<T, S extends object = object>(
-  segment: string
-): Handler<T, S> {
-  return (context, next) => {
-    if (context.segments[0] === segment) {
-      context.segments.shift();
-      return next();
-    }
-    return undefined;
-  };
 }
 
 function lastHandler<T, S extends object = object>(
   fn: Handler<T, S>
 ): Handler<T, S> {
   return (context, next) =>
-    context.segments.length === 0 ? fn(context, next) : undefined;
+    context.segments.length === 0 ? fn(context, next) : null;
 }
