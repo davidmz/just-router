@@ -12,11 +12,11 @@ Install it from npm as
 
 ### What is "router" and how to create one
 
-Router creates by _createRouter(…)_ call.
+Routers are created by _createRouter(…)_ call.
 
-The created router itself has a simple function `<T>(path: string) => T`. It
-takes path (string) and returns something that makes sense for your application.
-It can be, fo example, a React component or HTML string.
+The router itself has a simple function `<T>(path: string) => T`. It takes path
+(string) and returns something that makes sense for your application. It can be,
+fo example, a React component or HTML string.
 
 Path is a regular pathname, the string like "/path/to/some/thing". Path actually
 processed as a list of _segments_: "/path/to/some/thing" -> ["path", "to",
@@ -37,10 +37,10 @@ type Handler<T, S extends object = object> = (
 
 It may look complex because of type declarations, but actually it is very simple
 middleware-like (as in _koa_ or other routing libs) function that accepts the
-request _context_ ant the _next_ function, and returns type T or nothing (null |
-undefined). If handler is a _middleware_ (i.e. it just prepared data for the
-next handlers), it should call _next_. If it is a terminal handler, it shouldn't
-(it will cause an error).
+request _context_ and the _next_ function, and returns type T or nothing (null |
+undefined). If handler is a _middleware_ (i.e. it just prepare data for the next
+handlers), it should call _next_. If it is a terminal handler, it shouldn't
+(this will cause an error).
 
 By the way, the _context_ has the following type:
 
@@ -48,7 +48,7 @@ By the way, the _context_ has the following type:
 type Context<S extends object = object> = {
   // The initial 'path' passed to router. Immutable.
   readonly path: string;
-  // The segments of path. This list can be altered by handlers.
+  // The path segments. This list can be altered by handlers.
   segments: string[];
   // Named parameters, taken from path segments (see _param_ handler).
   pathParams: Record<string, string>;
@@ -57,7 +57,7 @@ type Context<S extends object = object> = {
 };
 ```
 
-The simplest possible router looks like this:
+The simplest router looks like this:
 
 ```typescript
 const router = createRouter(() => "Hello!");
@@ -65,8 +65,9 @@ const router = createRouter(() => "Hello!");
 expect(router("/foo/bar")).toBe("Hello!");
 ```
 
-This router is useless, it will return "Hello!" for any given path. The
-_createRouter_ hasn't any path processing logic, we need a _handlers_ for it.
+This router is pretty useless because it will return "Hello!" for any given
+path. The _createRouter_ hasn't any path processing logic, we need an additional
+handlers for it.
 
 ### Routes and path matching
 
@@ -125,7 +126,10 @@ groups](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Ex
 
 ```typescript
 const router = createRouter(
-  route(re(/article(?<id>)/), (ctx) => "Article ID=" + ctx.pathParams["id"])
+  route(
+    re(/article(?<id>[1-9]\d*)/),
+    (ctx) => "Article ID=" + ctx.pathParams["id"]
+  )
 );
 
 expect(router("/article42")).toBe("Article ID=42");
@@ -133,8 +137,7 @@ expect(router("/article42")).toBe("Article ID=42");
 
 ### Root path
 
-It is worth noting that root path can be matched by the route with single
-terminal handler:
+The root path can be matched by the route with single terminal handler:
 
 ```typescript
 const router = createRouter(route(() => "I am root!"));
@@ -171,7 +174,7 @@ The _bunch_ function takes set of handlers and returns a handler (again!) that:
 ### Catch-all handlers
 
 You may notice that our router throws a _RouteNotFound_ error it there is not
-matched route. This is because handlers created with route (almost) always
+matched route. This is because handlers, created with _route_, (almost) always
 require a complete path match. In practice, we often need a handler for "all
 other" paths, for example to show the "Not found" page.
 
@@ -192,12 +195,13 @@ expect(router("/bar")).toBe("Not found");
 
 ### Greedy handlers
 
-Here it is worth noting that _route_ requires that at the time the last handler
-in the chain is called, all segments of the path must be processed. So the
-`route("foo", handler)` will match "/foo", but not "/foo/bar", although the last
-one also starts from "foo" segment.
+As was mentioned earlier, _route_ requires the complete path match. This means
+that at the time the last handler in the chain is called, all segments of the
+path must be processed. So the `route("foo", handler)` will match "/foo", but
+not "/foo/bar", although the last one also starts from "foo" segment.
 
-Sometimes we need a handler that just grabs all the remaining segments. We can declare that handler as _greedy_.
+Sometimes we need a handler that just grabs all the remaining segments. We can
+declare such handler as _greedy_.
 
 ```typescript
 const router = createRouter(
@@ -234,7 +238,6 @@ const router = createRouter(
       bunch(
         route(() => "Projects list"),
         route(param("name"), (ctx) => "Project: " + ctx.pathParams["name"]),
-        () => "Project not found"
       )
     ),
     route(
@@ -243,14 +246,22 @@ const router = createRouter(
       bunch(
         route(() => "Admin home"),
         route("users", () => "List of users")
+        () => "Admin page not found"
       )
     ),
     () => "Page not found"
   )
 );
+
+expect(router("/")).toBe("Home");
+expect(router("/about")).toBe("About");
+expect(router("/projects")).toBe("Projects list");
+expect(router("/projects/foo")).toBe("Project: foo");
+expect(router("/admin/foo")).toBe("Admin page not found");
+// ...and so on
 ```
 
-That's all!
+That's all you need to know!
 
 ## API methods signatures
 
