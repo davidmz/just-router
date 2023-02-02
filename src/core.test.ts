@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { combineHandlers, ContextSaver, someHandler } from "./core";
+import type { ContextSaver } from "./core";
+import { combineHandlers, someHandler } from "./core";
 
 describe("Router 3 - Core", () => {
   describe("combineHandlers", () => {

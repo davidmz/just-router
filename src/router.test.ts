@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  bunch,
-  createRouter,
-  Handler,
-  param,
-  re,
-  route,
-  RouteNotFound,
-} from "./router";
+import type { Handler } from "./router";
+import { bunch, createRouter, param, re, route, RouteNotFound } from "./router";
 
 describe("Router", () => {
   it("should create simple router", () => {

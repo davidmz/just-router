@@ -1,9 +1,5 @@
-import {
-  combineHandlers,
-  Handler as CoreHandler,
-  Nullable,
-  someHandler,
-} from "./core";
+import type { Handler as CoreHandler, Nullable } from "./core";
+import { combineHandlers, someHandler } from "./core";
 
 export type Context<S extends object = object> = {
   readonly path: string;
