@@ -5,9 +5,9 @@ export {
   createRouter,
   type Handler,
   param,
-  split as path,
   route,
   RouteNotFound,
   type Router,
+  split,
   UnexpectedCall,
 } from "./router";
