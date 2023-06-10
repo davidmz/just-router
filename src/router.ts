@@ -21,16 +21,20 @@ export class RouteNotFound extends Error {
   // no content
 }
 
+function toSegments(path: string): string[] {
+  return path
+    .split("/")
+    .filter(Boolean)
+    .map((s) => decodeURIComponent(s));
+}
+
 export function createRouter<T, S extends object = object>(
   route: Handler<T, S>
 ): Router<T> {
   return function (path: string): T {
     const context: Context<S> = {
       path,
-      segments: path
-        .split("/")
-        .filter(Boolean)
-        .map((s) => decodeURIComponent(s)),
+      segments: toSegments(path),
       pathParams: {},
       state: {} as S,
     };
@@ -47,7 +51,7 @@ export function createRouter<T, S extends object = object>(
 const greedyHandlers = new WeakSet<object>();
 
 export function route<T, S extends object = object>(
-  ...handlers: [...(string | Handler<T, S>)[], Handler<T, S>]
+  ...handlers: [...(string | RegExp | Handler<T, S>)[], Handler<T, S>]
 ): Handler<T, S> {
   const last = handlers[handlers.length - 1] as Handler<T, S>;
   return combineHandlers([
@@ -75,16 +79,32 @@ export function param<T, S extends object = object>(
   };
 }
 
-export function greedy<T, S extends object = object>(
+export function split<T, S extends object = object>(
+  path: string
+): Handler<T, S> {
+  const segments = toSegments(path);
+  return (context, next) => {
+    for (let i = 0; i < segments.length; i++) {
+      if (segments[i] !== context.segments[i]) {
+        return null;
+      }
+    }
+
+    context.segments.splice(0, segments.length);
+    return next();
+  };
+}
+
+// Private functions
+
+function greedy<T, S extends object = object>(
   fn: Handler<T, S>
 ): Handler<T, S> {
   greedyHandlers.add(fn);
   return fn;
 }
 
-export function eq<T, S extends object = object>(
-  segment: string
-): Handler<T, S> {
+function str<T, S extends object = object>(segment: string): Handler<T, S> {
   return (context, next) => {
     if (context.segments[0] === segment) {
       context.segments.shift();
@@ -94,7 +114,7 @@ export function eq<T, S extends object = object>(
   };
 }
 
-export function re<T, S extends object = object>(re: RegExp): Handler<T, S> {
+function re<T, S extends object = object>(re: RegExp): Handler<T, S> {
   return (context, next) => {
     const [seg] = context.segments;
     if (!seg) {
@@ -114,8 +134,6 @@ export function re<T, S extends object = object>(re: RegExp): Handler<T, S> {
   };
 }
 
-// Private functions
-
 function contextSaver(ctx: Context) {
   const segments = [...ctx.segments];
   const pathParams = { ...ctx.pathParams };
@@ -128,10 +146,13 @@ function contextSaver(ctx: Context) {
 }
 
 function toHandler<T, S extends object = object>(
-  p: string | Handler<T, S>
+  p: string | RegExp | Handler<T, S>
 ): Handler<T, S> {
   if (typeof p === "string") {
-    return eq(p);
+    return str(p);
+  }
+  if (p instanceof RegExp) {
+    return re(p);
   }
   return p;
 }

@@ -1,15 +1,13 @@
 export { type Next } from "./core";
 export {
-  type Context,
-  type Handler,
-  type Router,
   bunch,
+  type Context,
   createRouter,
-  eq,
-  greedy,
+  type Handler,
   param,
-  re,
+  split as path,
   route,
   RouteNotFound,
+  type Router,
   UnexpectedCall,
 } from "./router";

@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { Handler } from "./router";
-import { bunch, createRouter, param, re, route, RouteNotFound } from "./router";
+import {
+  bunch,
+  createRouter,
+  param,
+  route,
+  RouteNotFound,
+  split,
+} from "./router";
 
 describe("Router", () => {
   it("should create simple router", () => {
@@ -33,7 +40,7 @@ describe("Router", () => {
   it("should create two-legs router", () => {
     const r = createRouter(
       bunch(
-        route(re(/^foo/), () => 42),
+        route(/^foo/, () => 42),
         route("bar", () => 24)
       )
     );
@@ -72,6 +79,7 @@ describe("Router", () => {
         route(() => "home"),
         route("about", () => "about"),
         route("about", "blank", () => "about:blank"),
+        route(split("about/config"), () => "about:config"),
         route("admin", setAdmin, bunch(
           route(() => `admin`),
           route("users", bunch(
@@ -88,6 +96,7 @@ describe("Router", () => {
       ["/", "home"],
       ["/about", "about"],
       ["/about/blank", "about:blank"],
+      ["/about/config", "about:config"],
       ["/admin", "admin: admin"],
       ["/admin/users", "admin: users"],
       ["/admin/users/j%C3%B6hn", "admin: user jöhn"],

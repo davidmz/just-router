@@ -1,7 +1,7 @@
 # just-router
 
 A very simple path matching and routing library. It is framework-independent,
-works synchronously, has a small size (< 700 B min/gz) and concise API.
+works synchronously, has a small size (< 750 B min/gz) and concise API.
 
 ## Installation
 
@@ -82,12 +82,11 @@ expect(() => router("/foo/bar")).toThrow(RouteNotFound);
 ```
 
 _route_ takes variable (but at least one) number of arguments. The last argument
-must be a handler function, other can be handler functions or just strings.
+must be a handler function, other can be handler functions, strings, or regexps.
 
-Actually, strings acts like handlers here, _route_ wraps them by _eq(…)_. The
-_eq_ helper takes string and creates handler that compares the current segment
-with it. So, `route("foo", () => "Hello!")` is the same as `route(eq("foo"), ()
-=> "Hello!")`.
+_route_ internally converts strings and regexps to the regular handlers. String
+means that the segment must exactly match the string. Regexp also requires
+match, but can also capture part of the segment (see below).
 
 The _route_ arguments forms handlers chain and executes sequentially, being
 linked via the _next_ argument of each other. So `route(a, b, c)` will act like
@@ -113,26 +112,32 @@ expect(router("/articles/routing")).toBe("Article: routing");
 The _param_ helper takes current path segment and places it to the context's
 _pathParams_ object with the given key.
 
-### The "re" helper
+### Regexp matchers
 
-The _re_ helper allow to define regexp to match segment. It combines _eq_ and
-_param_ functionality, since it allows you to both specify a segment pattern and
-capture come data from it.
+Regexp matchers combines string and _param_ functionality, since it allows you
+to both specify a segment pattern and capture come data from it.
 
-To match specific segment format just use a relevant regexp: the `re(/[1-9]\d*/)` will match only the numeric segments.
+To match specific segment format just use a relevant regexp: the `/[1-9]\d*/` will match only the numeric segments.
 
 To capture segment or it part(s), use regex [named
 groups](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Backreferences):
 
 ```typescript
 const router = createRouter(
-  route(
-    re(/article(?<id>[1-9]\d*)/),
-    (ctx) => "Article ID=" + ctx.pathParams["id"]
-  )
+  route(/article(?<id>[1-9]\d*)/, (ctx) => "Article ID=" + ctx.pathParams["id"])
 );
 
 expect(router("/article42")).toBe("Article ID=42");
+```
+
+### 'split' helper
+
+Route arguments work on a per-segment basis, but sometimes it is more convenient
+to specify (sub)path as a single string. It is possible with _split_ helper. The following routes are equivalent:
+
+```typescript
+route("path", "to", "articles", param("id"), showArticle);
+route(split("path/to/articles"), param("id"), showArticle);
 ```
 
 ### Root path
@@ -200,8 +205,9 @@ that at the time the last handler in the chain is called, all segments of the
 path must be processed. So the `route("foo", handler)` will match "/foo", but
 not "/foo/bar", although the last one also starts from "foo" segment.
 
-Sometimes we need a handler that just grabs all the remaining segments. We can
-declare such handler as _greedy_.
+Sometimes we need a "greedy" handler that grabs all the remaining segments. In
+such case, just wrap you handler with _batch_. The handler the _bunch_ returns
+is greedy, this allows to make nested bunches.
 
 ```typescript
 const router = createRouter(
@@ -209,7 +215,7 @@ const router = createRouter(
     route("foo", () => "Foo page"),
     route(
       "bar",
-      greedy((ctx) => "Bar page: " + (ctx.segments.join(", ") || "-"))
+      bunch((ctx) => "Bar page: " + (ctx.segments.join(", ") || "-"))
     )
   )
 );
@@ -220,10 +226,6 @@ expect(router("/bar/baz")).toBe("Bar page: baz");
 expect(router("/bar/baz/qux")).toBe("Bar page: baz, qux");
 ```
 
-The _greedy_ function is rarely needed by itself, but it is important that the
-handler the _bunch_ returns is also greedy. This allows you to make nested
-bunches.
-
 ### Nested bunches
 
 Here we can create a really complex staff!
@@ -233,6 +235,7 @@ const router = createRouter(
   bunch(
     route(() => "Home"),
     route("about", () => "About"),
+    route(split("about/contacts"), () => "Contacts"),
     route(
       "projects",
       bunch(
@@ -255,6 +258,7 @@ const router = createRouter(
 
 expect(router("/")).toBe("Home");
 expect(router("/about")).toBe("About");
+expect(router("/about/contacts")).toBe("Contacts");
 expect(router("/projects")).toBe("Projects list");
 expect(router("/projects/foo")).toBe("Project: foo");
 expect(router("/admin/foo")).toBe("Admin page not found");
@@ -291,20 +295,8 @@ function bunch<T, S>(...handlers: Handler<T, S>[]): Handler<T, S>;
 function param<T, S>(name: string): Handler<T, S>;
 ```
 
-### eq
+### split
 
 ```typescript
-function eq<T, S>(segment: string): Handler<T, S>;
-```
-
-### re
-
-```typescript
-function re<T, S>(re: RegExp): Handler<T, S>;
-```
-
-### greedy
-
-```typescript
-function greedy<T, S>(fn: Handler<T, S>): Handler<T, S>;
+function split<T, S>(path: string): Handler<T, S>;
 ```
